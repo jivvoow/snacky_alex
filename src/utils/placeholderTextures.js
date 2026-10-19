@@ -8,12 +8,17 @@ const OUTLINE = 0xd6cfe0;
 const DARK = 0x3a3340;
 const BLUSH = 0xffb3c6;
 
+// 선명하게 보이도록 임시 그림은 2배 크기로 만들어요.
+// (하트, 발바닥처럼 직접 크기를 정하는 그림은 setScale(… / TEXTURE_SCALE) 로 줄여서 써요)
+export const TEXTURE_SCALE = 2;
+
 // 이미 같은 이름의 그림(실제 PNG)이 있으면 그리지 않아요.
 function makeTexture(scene, key, width, height, draw) {
   if (scene.textures.exists(key)) return;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
+  g.setScale(TEXTURE_SCALE);
   draw(g);
-  g.generateTexture(key, width, height);
+  g.generateTexture(key, width * TEXTURE_SCALE, height * TEXTURE_SCALE);
   g.destroy();
 }
 
@@ -225,22 +230,62 @@ function drawBone(g, fill, outline) {
   g.fillEllipse(24, 12, 16, 4);
 }
 
-// 💣 폭탄
-function drawBomb(g) {
-  g.fillStyle(0x34344a, 1);
-  g.fillCircle(24, 30, 20);
-  g.fillStyle(0x55556e, 1);
-  g.fillCircle(24, 30, 18);
-  g.fillStyle(0xffffff, 0.45);
-  g.fillCircle(17, 23, 5);
-  g.fillStyle(0x7a7a96, 1);
-  g.fillRect(19, 8, 10, 6);
-  g.lineStyle(3, 0x9b7b55, 1);
-  g.lineBetween(24, 8, 30, 4);
-  g.fillStyle(0xffa64d, 1);
-  g.fillCircle(32, 4, 4);
-  g.fillStyle(0xfff176, 1);
-  g.fillCircle(32, 4, 2);
+// 🍫 초콜릿 (반쯤 벗겨진 포장지)
+function drawChocolate(g) {
+  // 초콜릿 판
+  g.fillStyle(0x4a2614, 1);
+  g.fillRoundedRect(4, 2, 36, 50, 6);
+  g.fillStyle(0x6b3b22, 1);
+  g.fillRoundedRect(6, 4, 32, 46, 5);
+  // 조각 칸
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 2; col++) {
+      const x = 9 + col * 14;
+      const y = 7 + row * 13;
+      g.fillStyle(0x8a4e2d, 1);
+      g.fillRoundedRect(x, y, 12, 11, 2);
+      g.fillStyle(0xb06a3f, 0.7);
+      g.fillRect(x + 2, y + 2, 7, 2);
+    }
+  }
+  // 분홍 포장지
+  g.fillStyle(0xe0577f, 1);
+  g.fillRoundedRect(2, 32, 40, 24, 5);
+  g.fillStyle(0xff8fb1, 1);
+  g.fillRoundedRect(3, 33, 38, 21, 4);
+  g.fillStyle(0xffffff, 0.9);
+  g.fillRect(3, 40, 38, 4);
+  // 포장지 위 하트
+  g.fillStyle(0xffffff, 1);
+  g.fillCircle(19, 48, 2.6);
+  g.fillCircle(25, 48, 2.6);
+  g.fillTriangle(16.6, 49, 27.4, 49, 22, 54);
+}
+
+// 🐾 발바닥
+function drawPaw(g) {
+  g.fillStyle(0xffffff, 1);
+  g.fillEllipse(16, 21, 16, 13);
+  g.fillCircle(6, 11, 4);
+  g.fillCircle(12.5, 6, 4);
+  g.fillCircle(19.5, 6, 4);
+  g.fillCircle(26, 11, 4);
+}
+
+// ⬅️➡️ 방향키
+function drawArrowKeys(g) {
+  [
+    [2, false],
+    [36, true],
+  ].forEach(([x, right]) => {
+    g.fillStyle(0xb9b2a6, 1);
+    g.fillRoundedRect(x, 4, 30, 30, 6);
+    g.fillStyle(0xffffff, 1);
+    g.fillRoundedRect(x, 2, 30, 28, 6);
+    g.fillStyle(0x1f2d5a, 1);
+    if (right) g.fillTriangle(x + 11, 8, x + 11, 24, x + 21, 16);
+    else g.fillTriangle(x + 19, 8, x + 19, 24, x + 9, 16);
+  });
 }
 
 // ❤️ 하트
@@ -264,7 +309,9 @@ export function createPlaceholderTextures(scene) {
 
   makeTexture(scene, 'snack', 52, 32, (g) => drawBone(g, 0xf3d1a0, 0xd9a86c));
   makeTexture(scene, 'goldenSnack', 52, 32, (g) => drawBone(g, 0xffd54a, 0xe6a700));
-  makeTexture(scene, 'bomb', 48, 52, drawBomb);
+  makeTexture(scene, 'chocolate', 44, 58, drawChocolate);
+  makeTexture(scene, 'paw', 32, 30, drawPaw);
+  makeTexture(scene, 'arrowKeys', 68, 36, drawArrowKeys);
   makeTexture(scene, 'heart', 28, 26, (g) => drawHeart(g, 0xff6f91));
   makeTexture(scene, 'heartEmpty', 28, 26, (g) => drawHeart(g, 0xe3dbe8));
 

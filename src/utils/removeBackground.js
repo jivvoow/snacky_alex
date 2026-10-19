@@ -1,11 +1,11 @@
-// ==========================================================
+﻿// ==========================================================
 // ✂️ 이미지 배경 자동 제거
 // 투명하지 않은 PNG(흰색/베이지 배경)를 게임 안에서만 투명하게 바꿔요.
 // 원본 파일은 바뀌지 않아요. 이미 투명한 PNG는 그대로 둬요.
 // 방법: 그림 가장자리에서 시작해, 배경색과 비슷한 픽셀을 이어서 지워요.
 // ==========================================================
 
-export function removeBackground(scene, key, { maxSize = 320, tolerance = 30 } = {}) {
+export function removeBackground(scene, key, { maxSize = 768, tolerance = 8 } = {}) {
   const source = scene.textures.get(key).getSourceImage();
 
   // 큰 이미지는 작게 줄여서 게임을 가볍게 해요
@@ -66,7 +66,7 @@ export function removeBackground(scene, key, { maxSize = 320, tolerance = 30 } =
       if (removed[p]) continue;
       const x = p % w;
       const touchesBg = (x > 0 && removed[p - 1]) || (x < w - 1 && removed[p + 1]) || removed[p - w] || removed[p + w];
-      if (touchesBg && distance(p) < tolerance * 2) data[p * 4 + 3] = 140;
+      if (touchesBg && distance(p) < tolerance + 12) data[p * 4 + 3] = 140;
     }
     ctx.putImageData(image, 0, 0);
   }

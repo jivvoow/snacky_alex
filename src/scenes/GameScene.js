@@ -1,10 +1,12 @@
-import Phaser from 'phaser';
+﻿import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, PLAYER, SIZES, SCORE, START_HEALTH, LEVEL_UP_MS, FALL, CAT, COLORS } from '../config.js';
 import Alex from '../objects/Alex.js';
 import Cat from '../objects/Cat.js';
 import { drawBackground } from '../utils/background.js';
 import { textStyle, fitToHeight, floatingText } from '../utils/ui.js';
-import { saveBestScore } from '../utils/storage.js';
+import { getBestRecord, saveBestRecord } from '../utils/storage.js';
+import { setupCamera } from '../utils/display.js';
+import { TEXTURE_SCALE } from '../utils/placeholderTextures.js';
 
 // 🎮 실제 게임 플레이 장면
 export default class GameScene extends Phaser.Scene {
@@ -13,8 +15,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    setupCamera(this);
+
     // 게임 상태 (다시 시작할 때마다 초기화)
     this.score = 0;
+    this.best = getBestRecord(); // { score, level }
     this.health = START_HEALTH;
     this.level = 1;
     this.elapsed = 0;
@@ -32,7 +37,7 @@ export default class GameScene extends Phaser.Scene {
     drawBackground(this);
 
     this.alex = new Alex(this, GAME_WIDTH / 2, PLAYER.y);
-    this.items = this.physics.add.group(); // 떨어지는 간식/폭탄
+    this.items = this.physics.add.group(); // 떨어지는 간식/초콜릿
     this.cats = this.physics.add.group({ runChildUpdate: true }); // 고양이들
 
     this.physics.add.overlap(this.alex, this.items, this.handleItem, null, this);
@@ -43,7 +48,7 @@ export default class GameScene extends Phaser.Scene {
       .particles(0, 0, 'sparkle', {
         speed: { min: 80, max: 200 },
         angle: { min: 0, max: 360 },
-        scale: { start: 1, end: 0 },
+        scale: { start: 1 / TEXTURE_SCALE, end: 0 },
         lifespan: 500,
         tint: [0xffe066, 0xff9ecb, 0xffffff, 0x9ed8ff],
         emitting: false,
@@ -57,21 +62,31 @@ export default class GameScene extends Phaser.Scene {
   // ---------------- 화면 상단 정보 (점수/레벨/체력) ----------------
   createHud() {
     const bar = this.add.graphics().setDepth(30);
-    bar.fillStyle(0xffffff, 0.75);
-    bar.fillRoundedRect(10, 10, GAME_WIDTH - 20, 48, 18);
+    bar.fillStyle(0x1f2d5a, 0.88);
+    bar.fillRoundedRect(10, 10, GAME_WIDTH - 20, 50, 25);
+    bar.lineStyle(2, 0xe9c77b, 1);
+    bar.strokeRoundedRect(10, 10, GAME_WIDTH - 20, 50, 25);
 
-    this.scoreText = this.add.text(28, 34, '점수 0', textStyle(22)).setOrigin(0, 0.5).setDepth(31);
-    this.levelText = this.add.text(GAME_WIDTH / 2, 34, 'Lv.1', textStyle(22, COLORS.accent)).setOrigin(0.5).setDepth(31);
+    this.scoreText = this.add.text(30, 35, '점수 0', textStyle(23, '#ffffff')).setOrigin(0, 0.5).setDepth(31);
+    this.levelText = this.add.text(GAME_WIDTH / 2 + 10, 35, 'Lv.1', textStyle(23, COLORS.gold)).setOrigin(0.5).setDepth(31);
+    this.bestText = this.add
+      .text(22, 76, '', textStyle(16, '#ffffff', { stroke: COLORS.navy, strokeThickness: 4 }))
+      .setOrigin(0, 0.5)
+      .setDepth(31);
 
     this.hearts = [];
     for (let i = 0; i < START_HEALTH; i++) {
-      this.hearts.push(this.add.image(GAME_WIDTH - 36 - i * 32, 34, 'heart').setDepth(31));
+      this.hearts.push(this.add.image(GAME_WIDTH - 38 - i * 32, 35, 'heart').setScale(1 / TEXTURE_SCALE).setDepth(31));
     }
+    this.updateHud();
   }
 
   updateHud() {
+    // 지금 점수가 최고 점수를 넘으면 최고 점수도 바로 바뀌어요
+    if (this.score > this.best.score) this.best = { score: this.score, level: this.level };
     this.scoreText.setText(`점수 ${this.score}`);
     this.levelText.setText(`Lv.${this.level}`);
+    this.bestText.setText(this.best.score > 0 ? `🏆 최고 ${this.best.score} · Lv.${this.best.level}` : '🏆 최고 0');
     this.hearts.forEach((heart, i) => heart.setTexture(i < this.health ? 'heart' : 'heartEmpty'));
   }
 
@@ -86,6 +101,12 @@ export default class GameScene extends Phaser.Scene {
       this.createTouchButton(52, 'left');
       this.createTouchButton(GAME_WIDTH - 52, 'right');
     }
+
+    // 일시정지 버튼 (오른쪽 위) + Esc 키
+    this.createPauseButton(GAME_WIDTH - 32, 84);
+    this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
+    this.events.on('resume', this.onResume, this);
+    this.events.once('shutdown', () => this.events.off('resume', this.onResume, this));
 
     // 버튼이 아닌 곳을 누르고 끌면, 손가락 위치로 알렉스가 따라와요
     this.input.on('pointerdown', (pointer, over) => {
@@ -104,15 +125,41 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  createPauseButton(x, y) {
+    const button = this.add.circle(x, y, 18, 0x1f2d5a, 0.85).setStrokeStyle(2, 0xe9c77b).setDepth(30);
+    button.setInteractive({ useHandCursor: true });
+    const icon = this.add.graphics().setDepth(31);
+    icon.fillStyle(0xffffff, 1);
+    icon.fillRoundedRect(x - 7, y - 8, 5, 16, 2);
+    icon.fillRoundedRect(x + 2, y - 8, 5, 16, 2);
+    button.on('pointerup', () => this.pauseGame());
+  }
+
+  // 게임을 멈추고 일시정지 창을 띄워요
+  pauseGame() {
+    if (this.isGameOver || this.scene.isPaused()) return;
+    this.scene.launch('PauseScene');
+    this.scene.pause();
+  }
+
+  // 다시 이어할 때: 멈춰 있던 동안 눌린 버튼/키 상태를 초기화
+  onResume() {
+    this.touchLeft = false;
+    this.touchRight = false;
+    this.dragPointerId = null;
+    this.dragTargetX = null;
+    this.input.keyboard.resetKeys();
+  }
+
   createTouchButton(x, side) {
     const y = GAME_HEIGHT - 28;
-    const button = this.add.circle(x, y, 26, 0xffffff, 0.7).setStrokeStyle(3, 0xf3a6c4).setDepth(30).setInteractive();
-    this.add.text(x, y, side === 'left' ? '◀' : '▶', textStyle(22, '#e67aa5')).setOrigin(0.5).setDepth(31);
+    const button = this.add.circle(x, y, 26, 0x1f2d5a, 0.75).setStrokeStyle(3, 0xe9c77b).setDepth(30).setInteractive();
+    this.add.text(x, y, side === 'left' ? '◀' : '▶', textStyle(22, '#ffffff')).setOrigin(0.5).setDepth(31);
 
     const setPressed = (pressed) => {
       if (side === 'left') this.touchLeft = pressed;
       else this.touchRight = pressed;
-      button.setFillStyle(0xffffff, pressed ? 1 : 0.7);
+      button.setFillStyle(0x1f2d5a, pressed ? 1 : 0.75);
     };
     button.on('pointerdown', () => setPressed(true));
     button.on('pointerup', () => setPressed(false));
@@ -125,7 +172,7 @@ export default class GameScene extends Phaser.Scene {
     return {
       fallSpeed: Math.min(FALL.maxSpeed, FALL.baseSpeed + n * FALL.speedPerLevel),
       spawnInterval: Math.max(FALL.minInterval, FALL.baseInterval - n * FALL.intervalPerLevel),
-      bombChance: Math.min(FALL.maxBombChance, FALL.baseBombChance + n * FALL.bombChancePerLevel),
+      chocolateChance: Math.min(FALL.maxChocolateChance, FALL.baseChocolateChance + n * FALL.chocolateChancePerLevel),
       catInterval: Math.max(CAT.minInterval, CAT.baseInterval - n * CAT.intervalPerLevel),
       catSpeed: Math.min(CAT.maxSpeed, CAT.baseSpeed + n * CAT.speedPerLevel),
       catJumpWidth: Math.max(CAT.minJumpWidth, CAT.jumpWidth - n * CAT.jumpWidthPerLevel),
@@ -146,7 +193,7 @@ export default class GameScene extends Phaser.Scene {
     const newLevel = 1 + Math.floor(this.elapsed / LEVEL_UP_MS);
     if (newLevel > this.level) this.levelUp(newLevel);
 
-    // 간식/폭탄 떨어뜨리기
+    // 간식/초콜릿 떨어뜨리기
     this.itemTimer += ms;
     if (this.itemTimer >= difficulty.spawnInterval) {
       this.itemTimer = 0;
@@ -183,8 +230,8 @@ export default class GameScene extends Phaser.Scene {
   spawnItem(difficulty) {
     const roll = Math.random();
     let type = 'snack';
-    if (roll < difficulty.bombChance) type = 'bomb';
-    else if (roll < difficulty.bombChance + FALL.goldenChance) type = 'goldenSnack';
+    if (roll < difficulty.chocolateChance) type = 'chocolate';
+    else if (roll < difficulty.chocolateChance + FALL.goldenChance) type = 'goldenSnack';
 
     const x = Phaser.Math.Between(30, GAME_WIDTH - 30);
     const item = this.items.create(x, -30, type);
@@ -193,7 +240,7 @@ export default class GameScene extends Phaser.Scene {
     item.body.setSize(item.width * 0.8, item.height * 0.8);
     item.setVelocityY(difficulty.fallSpeed);
     item.setDepth(5);
-    if (type !== 'bomb') item.setAngularVelocity(Phaser.Math.Between(-90, 90));
+    item.setAngularVelocity(Phaser.Math.Between(-90, 90));
   }
 
   handleItem(alex, item) {
@@ -201,8 +248,9 @@ export default class GameScene extends Phaser.Scene {
     const { x, itemType } = item;
     item.destroy();
 
-    if (itemType === 'bomb') {
-      this.hitBomb(x);
+    if (itemType === 'chocolate') {
+      floatingText(this, x, this.alex.y - 60, '초콜릿은 안 돼! 🍫', '#ff5c7a', 22);
+      this.loseHealth(1);
       return;
     }
 
@@ -214,12 +262,12 @@ export default class GameScene extends Phaser.Scene {
     floatingText(this, this.alex.x, this.alex.y - 60, `+${points}`, itemType === 'goldenSnack' ? '#f0a500' : COLORS.pink);
   }
 
-  hitBomb(x) {
-    this.health -= 1;
+  // 하트 감소 (초콜릿, 고양이 공통)
+  loseHealth(amount) {
+    this.health = Math.max(0, this.health - amount);
     this.updateHud();
     this.alex.flashHurt();
     this.cameras.main.shake(200, 0.01);
-    floatingText(this, x, this.alex.y - 60, '아야! 💥', '#ff5c7a');
 
     if (this.health <= 0) this.gameOver();
   }
@@ -242,6 +290,7 @@ export default class GameScene extends Phaser.Scene {
       floatingText(this, this.alex.x, this.alex.y - 75, '어지러워~', '#8a7aff', 20);
     }
     floatingText(this, cat.x, cat.y - 40, '냥!', '#ff9a3c', 22);
+    this.loseHealth(CAT.damage);
   }
 
   // ---------------- 레벨업 ----------------
@@ -270,10 +319,10 @@ export default class GameScene extends Phaser.Scene {
     this.isGameOver = true;
     this.physics.pause();
     this.alex.setTint(0xb0a8b9);
-    const isNewBest = saveBestScore(this.score);
+    const isNewBest = saveBestRecord(this.score, this.level);
 
     this.time.delayedCall(800, () => {
-      this.scene.start('GameOverScene', { score: this.score, isNewBest });
+      this.scene.start('GameOverScene', { score: this.score, level: this.level, isNewBest });
     });
   }
 }
