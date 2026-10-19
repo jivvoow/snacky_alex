@@ -3,6 +3,8 @@
 하얀 복슬강아지 **알렉스**가 하늘에서 떨어지는 간식을 받아먹는 귀여운 2D 캐주얼 웹게임이에요.
 PC와 모바일 브라우저에서 모두 플레이할 수 있어요.
 
+▶ **바로 플레이하기: https://jivvoow.github.io/snacky_alex/**
+
 - 기술 스택: JavaScript, [Phaser 3](https://phaser.io/), [Vite](https://vitejs.dev/)
 - 화면: 세로형 480×720 (화면 크기에 맞춰 자동 확대/축소)
 
@@ -36,6 +38,12 @@ npm run dev     # 개발 서버 실행 → 브라우저에서 http://localhost:5
 
 - 같은 와이파이에 연결된 휴대폰에서는 터미널에 나오는 `Network:` 주소로 접속하면 돼요.
 - `npm run build` 를 실행하면 배포용 파일이 `dist/` 폴더에 만들어져요.
+
+## 🌐 배포 (GitHub Pages)
+
+`main` 브랜치에 코드가 합쳐지면 GitHub Actions가 자동으로 빌드해서 위 링크에 배포해요.
+설정 파일: `.github/workflows/deploy.yml`
+(처음 한 번은 저장소 Settings → Pages → Source 를 **GitHub Actions** 로 바꿔야 해요.)
 
 ## 📁 폴더 구조
 
