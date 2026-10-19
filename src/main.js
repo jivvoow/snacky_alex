@@ -33,6 +33,21 @@ const config = {
   scene: [BootScene, StartScene, GameScene, PauseScene, GameOverScene],
 };
 
+// 게임 중 실수로 화면이 확대되어 잘리지 않게 막아요.
+// - 노트북 터치패드 핀치 / Ctrl + 마우스 휠 확대
+window.addEventListener('wheel', (event) => {
+  if (event.ctrlKey) event.preventDefault();
+}, { passive: false });
+// - 아이폰(사파리) 두 손가락 확대
+['gesturestart', 'gesturechange'].forEach((type) => document.addEventListener(type, (event) => event.preventDefault()));
+// - 휴대폰 두 번 톡톡 확대
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (event) => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 300) event.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
 // 귀여운 글꼴(Jua)을 불러온 뒤 게임을 시작해요. 인터넷이 없어도 1.5초 뒤엔 시작돼요.
 const waitForFont = document.fonts
   ? Promise.race([document.fonts.load('32px Jua'), new Promise((resolve) => setTimeout(resolve, 1500))])
