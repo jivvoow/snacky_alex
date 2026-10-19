@@ -18,11 +18,14 @@ export default class StartScene extends Phaser.Scene {
     const title = this.add
       .text(cx, 140, '알렉스의\n냠냠캐치', textStyle(56, COLORS.pink, { align: 'center', stroke: '#ffffff', strokeThickness: 10, lineSpacing: -6 }))
       .setOrigin(0.5);
-    this.tweens.add({ targets: title, y: 150, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const subtitle = this.add
+      .text(cx, 222, 'Snacky Alex! 🐾', textStyle(26, COLORS.accent, { stroke: '#ffffff', strokeThickness: 6 }))
+      .setOrigin(0.5);
+    this.tweens.add({ targets: [title, subtitle], y: '+=10', duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     // 알렉스
-    const alex = fitToHeight(this.add.image(cx, 320, 'alex'), 140);
-    this.tweens.add({ targets: alex, y: 308, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const alex = fitToHeight(this.add.image(cx, 335, 'alex'), 140);
+    this.tweens.add({ targets: alex, y: 323, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     // 시작 버튼
     createButton(this, cx, 455, '게임 시작', () => this.startGame());
