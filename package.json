@@ -1,8 +1,8 @@
 {
-  "name": "yumcatch",
+  "name": "snacky-alex",
   "private": true,
   "version": "0.1.0",
-  "description": "알렉스의 냠냠캐치 - 귀여운 2D 캐주얼 웹게임",
+  "description": "알렉스의 냠냠캐치 (Snacky Alex!) - 귀여운 2D 캐주얼 웹게임",
   "type": "module",
   "scripts": {
     "dev": "vite",
