@@ -4,6 +4,7 @@ import BootScene from './scenes/BootScene.js';
 import StartScene from './scenes/StartScene.js';
 import GameScene from './scenes/GameScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
+import PauseScene from './scenes/PauseScene.js';
 import { RENDER_SCALE } from './utils/display.js';
 
 const config = {
@@ -28,8 +29,8 @@ const config = {
   input: {
     activePointers: 3, // 멀티터치 지원
   },
-  // 장면 순서: 준비 → 시작 화면 → 게임 → 게임오버
-  scene: [BootScene, StartScene, GameScene, GameOverScene],
+  // 장면 순서: 준비 → 시작 화면 → 게임(+일시정지 창) → 게임오버
+  scene: [BootScene, StartScene, GameScene, PauseScene, GameOverScene],
 };
 
 // 귀여운 글꼴(Jua)을 불러온 뒤 게임을 시작해요. 인터넷이 없어도 1.5초 뒤엔 시작돼요.

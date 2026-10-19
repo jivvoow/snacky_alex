@@ -102,6 +102,12 @@ export default class GameScene extends Phaser.Scene {
       this.createTouchButton(GAME_WIDTH - 52, 'right');
     }
 
+    // 일시정지 버튼 (오른쪽 위) + Esc 키
+    this.createPauseButton(GAME_WIDTH - 32, 84);
+    this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
+    this.events.on('resume', this.onResume, this);
+    this.events.once('shutdown', () => this.events.off('resume', this.onResume, this));
+
     // 버튼이 아닌 곳을 누르고 끌면, 손가락 위치로 알렉스가 따라와요
     this.input.on('pointerdown', (pointer, over) => {
       if (over.length > 0) return;
@@ -117,6 +123,32 @@ export default class GameScene extends Phaser.Scene {
         this.dragTargetX = null;
       }
     });
+  }
+
+  createPauseButton(x, y) {
+    const button = this.add.circle(x, y, 18, 0x1f2d5a, 0.85).setStrokeStyle(2, 0xe9c77b).setDepth(30);
+    button.setInteractive({ useHandCursor: true });
+    const icon = this.add.graphics().setDepth(31);
+    icon.fillStyle(0xffffff, 1);
+    icon.fillRoundedRect(x - 7, y - 8, 5, 16, 2);
+    icon.fillRoundedRect(x + 2, y - 8, 5, 16, 2);
+    button.on('pointerup', () => this.pauseGame());
+  }
+
+  // 게임을 멈추고 일시정지 창을 띄워요
+  pauseGame() {
+    if (this.isGameOver || this.scene.isPaused()) return;
+    this.scene.launch('PauseScene');
+    this.scene.pause();
+  }
+
+  // 다시 이어할 때: 멈춰 있던 동안 눌린 버튼/키 상태를 초기화
+  onResume() {
+    this.touchLeft = false;
+    this.touchRight = false;
+    this.dragPointerId = null;
+    this.dragTargetX = null;
+    this.input.keyboard.resetKeys();
   }
 
   createTouchButton(x, side) {
