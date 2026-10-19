@@ -72,7 +72,7 @@ export function createBestScoreBadge(scene, x, y, best) {
   const width = 280;
   const height = 36;
   const g = scene.add.graphics();
-  g.fillStyle(0x1f2d5a, 0.92);
+  g.fillStyle(0x1f2d5a, 1);
   g.fillRoundedRect(x - width / 2, y - height / 2, width, height, height / 2);
   g.lineStyle(2, 0xe9c77b, 1);
   g.strokeRoundedRect(x - width / 2, y - height / 2, width, height, height / 2);

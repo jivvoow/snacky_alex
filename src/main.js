@@ -48,9 +48,18 @@ document.addEventListener('touchend', (event) => {
   lastTouchEnd = now;
 }, { passive: false });
 
-// 귀여운 글꼴(Jua)을 불러온 뒤 게임을 시작해요. 인터넷이 없어도 1.5초 뒤엔 시작돼요.
+// 귀여운 글꼴(Jua)을 불러온 뒤 게임을 시작해요. 인터넷이 없어도 3초 뒤엔 시작돼요.
+// 한글 글꼴은 글자들이 여러 조각으로 나뉘어 있어서, 게임에 쓰는 글자가 든 조각을 모두 받아야
+// 일부 글자만 다른 글꼴로 보이는 문제가 없어요. 코드 속 따옴표 안의 한글을 자동으로 모아요.
+const sources = import.meta.glob(['./**/*.js', '!./main.js'], { query: '?raw', import: 'default', eager: true });
+const quotedText = Object.values(sources)
+  .join('\n')
+  .match(/(['"`])(?:\\.|(?!\1)[^\\\n])*\1/g) || [];
+const hangul = [...new Set(quotedText.join('').match(/[가-힣]/g) || [])].join('');
+const fontSampleText = `${hangul}ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?+-·:.,~()`;
+
 const waitForFont = document.fonts
-  ? Promise.race([document.fonts.load('32px Jua'), new Promise((resolve) => setTimeout(resolve, 1500))])
+  ? Promise.race([document.fonts.load('32px Jua', fontSampleText), new Promise((resolve) => setTimeout(resolve, 3000))])
   : Promise.resolve();
 
 waitForFont
