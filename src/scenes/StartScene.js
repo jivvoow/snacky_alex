@@ -66,7 +66,7 @@ export default class StartScene extends Phaser.Scene {
       { key: 'snack', size: 22, name: '일반 간식', value: '+10', color: COLORS.navy },
       { key: 'goldenSnack', size: 24, name: '황금 간식', value: '+30', color: COLORS.navy },
       { key: 'chocolate', size: 30, name: '초콜릿', value: '♥ -1', color: COLORS.pink },
-      { key: 'cat', size: 40, name: '토라', value: '♥-1 느림', color: COLORS.pink },
+      { key: 'cat', size: 40, name: '토라', value: '♥ -1', color: COLORS.pink },
       { key: 'arrowKeys', size: 22, name: 'PC ← →', value: '폰: 드래그', color: COLORS.accent, small: true },
     ];
     const columnWidth = width / items.length;
