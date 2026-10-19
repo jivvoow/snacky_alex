@@ -49,7 +49,7 @@ export default class StartScene extends Phaser.Scene {
     createButton(this, cx, 502, '게임 시작  ›', () => this.startGame(), { width: 300, height: 70, fontSize: 32, paws: true });
 
     // 아이템 안내 카드
-    this.createGuideCard(14, 556, GAME_WIDTH - 28, 118);
+    this.createGuideCard(44, 566, GAME_WIDTH - 88, 96);
 
     // 최고 점수
     createBestScoreBadge(this, cx, 698, getBestRecord());
@@ -60,14 +60,14 @@ export default class StartScene extends Phaser.Scene {
   }
 
   createGuideCard(x, y, width, height) {
-    drawCard(this, x, y, width, height);
+    drawCard(this, x, y, width, height, 18);
 
     const items = [
-      { key: 'snack', size: SIZES.snack, name: '일반 간식', value: '+10', color: COLORS.navy },
-      { key: 'goldenSnack', size: SIZES.goldenSnack, name: '황금 간식', value: '+30', color: COLORS.navy },
-      { key: 'chocolate', size: 40, name: '초콜릿', value: '♥ -1', color: COLORS.pink },
-      { key: 'cat', size: 52, name: '토라', value: '♥-1 느림', color: COLORS.pink },
-      { key: 'arrowKeys', size: 30, name: 'PC ← →', value: '폰: 드래그', color: COLORS.accent, small: true },
+      { key: 'snack', size: 22, name: '일반 간식', value: '+10', color: COLORS.navy },
+      { key: 'goldenSnack', size: 24, name: '황금 간식', value: '+30', color: COLORS.navy },
+      { key: 'chocolate', size: 30, name: '초콜릿', value: '♥ -1', color: COLORS.pink },
+      { key: 'cat', size: 40, name: '토라', value: '♥-1 느림', color: COLORS.pink },
+      { key: 'arrowKeys', size: 22, name: 'PC ← →', value: '폰: 드래그', color: COLORS.accent, small: true },
     ];
     const columnWidth = width / items.length;
 
@@ -75,16 +75,16 @@ export default class StartScene extends Phaser.Scene {
     lines.lineStyle(1.5, 0xead9bb, 1);
     items.forEach((item, i) => {
       const cx = x + columnWidth * (i + 0.5);
-      if (i > 0) lines.lineBetween(x + columnWidth * i, y + 16, x + columnWidth * i, y + height - 16);
+      if (i > 0) lines.lineBetween(x + columnWidth * i, y + 14, x + columnWidth * i, y + height - 14);
 
-      fitToHeight(this.add.image(cx, y + 36, item.key), item.size);
-      this.add.text(cx, y + 74, item.name, textStyle(15, COLORS.text)).setOrigin(0.5);
-      this.add.text(cx, y + 97, item.value, textStyle(item.small ? 15 : 19, item.color)).setOrigin(0.5);
+      fitToHeight(this.add.image(cx, y + 28, item.key), item.size);
+      this.add.text(cx, y + 59, item.name, textStyle(13, COLORS.text)).setOrigin(0.5);
+      this.add.text(cx, y + 78, item.value, textStyle(item.small ? 12 : 15, item.color)).setOrigin(0.5);
     });
 
     // 황금 간식 반짝이
-    const sparkle = this.add.image(x + columnWidth * 1.5 + 22, y + 22, 'sparkle').setTint(0xffc93c).setScale(1 / TEXTURE_SCALE);
-    this.tweens.add({ targets: sparkle, scale: 0.4 / TEXTURE_SCALE, alpha: 0.4, duration: 600, yoyo: true, repeat: -1 });
+    const sparkle = this.add.image(x + columnWidth * 1.5 + 18, y + 16, 'sparkle').setTint(0xffc93c).setScale(0.8 / TEXTURE_SCALE);
+    this.tweens.add({ targets: sparkle, scale: 0.3 / TEXTURE_SCALE, alpha: 0.4, duration: 600, yoyo: true, repeat: -1 });
   }
 
   startGame() {
