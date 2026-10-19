@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, COLORS } from '../config.js';
 import { drawBackground } from '../utils/background.js';
-import { textStyle, fitToHeight, createButton } from '../utils/ui.js';
-import { getBestScore } from '../utils/storage.js';
+import { textStyle, fitToHeight, createButton, drawCard, createBestScoreBadge } from '../utils/ui.js';
+import { getBestRecord } from '../utils/storage.js';
+import { setupCamera } from '../utils/display.js';
 
 // 🏁 게임오버 화면
 export default class GameOverScene extends Phaser.Scene {
@@ -12,38 +13,47 @@ export default class GameOverScene extends Phaser.Scene {
 
   init(data) {
     this.finalScore = data.score || 0;
+    this.finalLevel = data.level || 1;
     this.isNewBest = data.isNewBest || false;
     this.leaving = false;
   }
 
   create() {
+    setupCamera(this);
     const cx = GAME_WIDTH / 2;
     drawBackground(this);
 
-    // 하얀 카드
-    const panel = this.add.graphics();
-    panel.fillStyle(0xffffff, 0.85);
-    panel.fillRoundedRect(50, 110, GAME_WIDTH - 100, 470, 30);
+    this.add
+      .text(cx, 80, '게임 오버', textStyle(56, COLORS.navy, { stroke: '#ffffff', strokeThickness: 10 }))
+      .setOrigin(0.5);
 
-    this.add.text(cx, 160, '게임 오버', textStyle(44, COLORS.pink)).setOrigin(0.5);
-    fitToHeight(this.add.image(cx, 260, this.textures.exists('alexEat') ? 'alexEat' : 'alex'), 110);
+    drawCard(this, 50, 130, GAME_WIDTH - 100, 360, 28);
+    fitToHeight(this.add.image(cx, 220, this.textures.exists('alexEat') ? 'alexEat' : 'alex'), 140);
 
-    this.add.text(cx, 345, '최종 점수', textStyle(22)).setOrigin(0.5);
-    const scoreText = this.add.text(cx, 390, `${this.finalScore}`, textStyle(52, COLORS.pink)).setOrigin(0.5);
-    this.add.text(cx, 450, `🏆 최고 점수: ${getBestScore()}`, textStyle(22, COLORS.accent)).setOrigin(0.5);
+    this.add.text(cx, 320, '최종 점수', textStyle(22, COLORS.text)).setOrigin(0.5);
+    const scoreText = this.add.text(cx, 368, `${this.finalScore}`, textStyle(60, COLORS.pink)).setOrigin(0.5);
+    this.add.text(cx, 415, `Lv.${this.finalLevel} 까지 도달!`, textStyle(20, COLORS.navy)).setOrigin(0.5);
 
     if (this.isNewBest && this.finalScore > 0) {
       const badge = this.add
-        .text(cx + 95, 370, 'NEW!', textStyle(22, '#ffffff', { backgroundColor: '#ffb84d', padding: { x: 8, y: 3 } }))
+        .text(cx + 100, 345, 'NEW!', textStyle(22, '#ffffff', { backgroundColor: '#f0a500', padding: { x: 8, y: 3 } }))
         .setOrigin(0.5)
         .setAngle(12);
-      this.tweens.add({ targets: [badge, scoreText], scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: [badge, scoreText], scale: 1.1, duration: 400, yoyo: true, repeat: -1 });
+      this.add.text(cx, 452, '🎉 최고 기록 달성!', textStyle(22, COLORS.accent)).setOrigin(0.5);
+    } else {
+      this.add.text(cx, 452, '조금만 더 힘내요! 🐾', textStyle(22, COLORS.accent)).setOrigin(0.5);
     }
 
-    createButton(this, cx, 525, '다시 시작', () => this.goTo('GameScene'));
+    createButton(this, cx, 548, '다시 시작', () => this.goTo('GameScene'), { width: 280, height: 68, fontSize: 30, paws: true });
 
-    const home = this.add.text(cx, 620, '처음으로', textStyle(22, COLORS.text)).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const home = this.add
+      .text(cx, 625, '처음으로', textStyle(22, '#ffffff', { stroke: COLORS.navy, strokeThickness: 5 }))
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
     home.on('pointerup', () => this.goTo('StartScene'));
+
+    createBestScoreBadge(this, cx, 690, getBestRecord());
 
     this.input.keyboard.once('keydown-SPACE', () => this.goTo('GameScene'));
     this.input.keyboard.once('keydown-ENTER', () => this.goTo('GameScene'));

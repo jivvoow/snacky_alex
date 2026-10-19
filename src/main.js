@@ -4,12 +4,14 @@ import BootScene from './scenes/BootScene.js';
 import StartScene from './scenes/StartScene.js';
 import GameScene from './scenes/GameScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
+import { RENDER_SCALE } from './utils/display.js';
 
 const config = {
   type: Phaser.AUTO,
   parent: 'game',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
+  // 실제 그림은 화면 해상도에 맞춰 크게 그려요 (선명하게). 게임 좌표는 480x720 그대로.
+  width: GAME_WIDTH * RENDER_SCALE,
+  height: GAME_HEIGHT * RENDER_SCALE,
   backgroundColor: '#ffeef5',
   scale: {
     // 화면 크기에 맞춰 비율을 유지한 채 늘리거나 줄여요 (PC/모바일 공통)

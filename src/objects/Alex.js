@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import Phaser from 'phaser';
 import { GAME_WIDTH, PLAYER, SIZES, CAT } from '../config.js';
 import { fitToHeight, textStyle } from '../utils/ui.js';
 
@@ -90,7 +90,7 @@ export default class Alex extends Phaser.Physics.Arcade.Image {
     return true;
   }
 
-  // 폭탄에 맞았을 때 빨갛게 깜빡
+  // 초콜릿/고양이에 맞았을 때 빨갛게 깜빡
   flashHurt() {
     this.setTint(0xff8a8a);
     if (this.flashTimer) this.flashTimer.remove();

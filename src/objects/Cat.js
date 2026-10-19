@@ -18,7 +18,7 @@ export default class Cat extends Phaser.Physics.Arcade.Image {
     this.jumpTexture = scene.textures.exists('catJump') ? 'catJump' : 'cat';
     this.isJumping = false;
     fitToHeight(this, SIZES.cat);
-    this.body.setSize(this.width * 0.55, this.height * 0.55);
+    this.body.setSize(this.width * 0.5, this.height * 0.5); // 충돌 영역을 그림보다 작게 (억울하지 않게)
     this.setDepth(9);
 
     this.direction = fromLeft ? 1 : -1;

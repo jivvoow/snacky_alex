@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
-import { IMAGES, AUTO_REMOVE_BACKGROUND, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { IMAGES, AUTO_REMOVE_BACKGROUND, BACKGROUND_TOLERANCE, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
 import { createPlaceholderTextures } from '../utils/placeholderTextures.js';
 import { removeBackground } from '../utils/removeBackground.js';
+import { setupCamera } from '../utils/display.js';
 
 // 🔧 준비 장면: 이미지를 불러오고, 없는 이미지는 임시 그림으로 채워요
 export default class BootScene extends Phaser.Scene {
@@ -10,6 +11,7 @@ export default class BootScene extends Phaser.Scene {
   }
 
   preload() {
+    setupCamera(this);
     this.add
       .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '불러오는 중... 🐾', {
         fontFamily: 'sans-serif',
@@ -29,8 +31,8 @@ export default class BootScene extends Phaser.Scene {
       if (!path) return;
       if (!this.textures.exists(key)) {
         console.warn(`[냠냠캐치] '${path}' 이미지를 찾지 못해서 임시 그림을 사용해요.`);
-      } else if (AUTO_REMOVE_BACKGROUND) {
-        removeBackground(this, key);
+      } else if (AUTO_REMOVE_BACKGROUND && key !== 'background') {
+        removeBackground(this, key, { tolerance: BACKGROUND_TOLERANCE[key] ?? BACKGROUND_TOLERANCE.default });
       }
     });
 
