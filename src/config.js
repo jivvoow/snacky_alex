@@ -60,7 +60,7 @@ export const BACKGROUND_TOLERANCE = {
 export const SIZES = {
   alex: 120,
   snack: 30,
-  goldenSnack: 32,
+  goldenSnack: 46, // 빛 후광 포함 크기
   chocolate: 44,
   cat: 78,
   goldenPaw: 38,

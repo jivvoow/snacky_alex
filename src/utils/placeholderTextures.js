@@ -230,6 +230,35 @@ function drawBone(g, fill, outline) {
   g.fillEllipse(24, 12, 16, 4);
 }
 
+// ✨ 황금 뼈다귀: 진한 금색 + 빛 후광 + 반짝이 (일반 간식과 한눈에 구별되게)
+function drawGoldenBone(g) {
+  g.fillStyle(0xfff3b0, 0.35);
+  g.fillEllipse(32, 24, 64, 46);
+  g.fillStyle(0xffe680, 0.4);
+  g.fillEllipse(32, 24, 56, 36);
+  g.translateCanvas(6, 8);
+  drawBone(g, 0xffc21a, 0xd98a00);
+  g.fillStyle(0xffffff, 0.85);
+  g.fillEllipse(18, 11, 10, 4);
+  g.translateCanvas(-6, -8);
+  // 작은 별 반짝이
+  const star = (x, y, r) => {
+    g.fillStyle(0xffffff, 1);
+    g.fillPoints([
+      { x, y: y - r },
+      { x: x + r * 0.3, y: y - r * 0.3 },
+      { x: x + r, y },
+      { x: x + r * 0.3, y: y + r * 0.3 },
+      { x, y: y + r },
+      { x: x - r * 0.3, y: y + r * 0.3 },
+      { x: x - r, y },
+      { x: x - r * 0.3, y: y - r * 0.3 },
+    ], true);
+  };
+  star(54, 9, 6);
+  star(9, 38, 4);
+}
+
 // 🍫 초콜릿 (반쯤 벗겨진 포장지)
 function drawChocolate(g) {
   // 초콜릿 판
@@ -339,7 +368,7 @@ export function createPlaceholderTextures(scene) {
   if (catIsPlaceholder) makeTexture(scene, 'catJump', 84, 80, (g) => drawCat(g, true));
 
   makeTexture(scene, 'snack', 52, 32, (g) => drawBone(g, 0xf3d1a0, 0xd9a86c));
-  makeTexture(scene, 'goldenSnack', 52, 32, (g) => drawBone(g, 0xffd54a, 0xe6a700));
+  makeTexture(scene, 'goldenSnack', 64, 48, drawGoldenBone);
   makeTexture(scene, 'chocolate', 44, 58, drawChocolate);
   makeTexture(scene, 'paw', 32, 30, drawPaw);
   makeTexture(scene, 'goldenPaw', 48, 48, drawGoldenPaw);

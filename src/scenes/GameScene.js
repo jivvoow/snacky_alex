@@ -267,6 +267,26 @@ export default class GameScene extends Phaser.Scene {
       item.setVelocityY(difficulty.fallSpeed);
       item.setAngularVelocity(Phaser.Math.Between(-90, 90));
     }
+    if (type === 'goldenSnack') this.makeShiny(item);
+  }
+
+  // 황금 간식: 반짝반짝 커졌다 작아지고, 뒤로 금빛 반짝이가 흘러요 (일반 간식과 구별)
+  makeShiny(item) {
+    item.body.setSize(item.width * 0.65, item.height * 0.65); // 빛 후광 부분은 빼고 충돌
+    item.setAngularVelocity(Phaser.Math.Between(-40, 40)); // 천천히 돌아서 잘 보이게
+    this.tweens.add({ targets: item, scale: item.scale * 1.15, duration: 280, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const trail = this.add
+      .particles(0, 0, 'sparkle', {
+        follow: item,
+        frequency: 90,
+        lifespan: 450,
+        speed: { min: 10, max: 40 },
+        scale: { start: 0.55 / TEXTURE_SCALE, end: 0 },
+        alpha: { start: 1, end: 0 },
+        tint: [0xffd23f, 0xffffff],
+      })
+      .setDepth(4);
+    item.once('destroy', () => trail.destroy());
   }
 
   handleItem(alex, item) {
