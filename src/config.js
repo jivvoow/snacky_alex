@@ -93,7 +93,7 @@ export const FALL = {
   baseInterval: 720, // 레벨 1에서 물건이 나오는 간격 (밀리초)
   intervalPerLevel: 45, // 레벨당 줄어드는 간격
   minInterval: 360, // 가장 짧은 간격
-  goldenChance: 0.1, // 황금 간식 확률 (10%)
+  goldenChance: 0.2, // 황금 간식 확률 (20%)
   baseChocolateChance: 0.15, // 레벨 1 초콜릿 확률 (15%)
   chocolateChancePerLevel: 0.02, // 레벨당 늘어나는 초콜릿 확률
   maxChocolateChance: 0.33, // 최대 초콜릿 확률
