@@ -109,6 +109,18 @@ export default class Cat extends Phaser.Physics.Arcade.Image {
     }
   }
 
+  // 피버타임이 시작되면 부딪히지 않게 하고 살며시 사라져요
+  fadeAway() {
+    this.hasHit = true;
+    this.body.enable = false;
+    this.scene.tweens.add({
+      targets: [this, this.shadow, this.trail],
+      alpha: 0,
+      duration: 350,
+      onComplete: () => this.destroy(),
+    });
+  }
+
   destroy(fromScene) {
     if (this.shadow) this.shadow.destroy();
     if (this.trail) this.trail.destroy();

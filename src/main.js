@@ -5,7 +5,9 @@ import StartScene from './scenes/StartScene.js';
 import GameScene from './scenes/GameScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import PauseScene from './scenes/PauseScene.js';
+import MusicLoaderScene from './scenes/MusicLoaderScene.js';
 import { RENDER_SCALE } from './utils/display.js';
+import { audio } from './utils/audio.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -29,8 +31,8 @@ const config = {
   input: {
     activePointers: 3, // 멀티터치 지원
   },
-  // 장면 순서: 준비 → 시작 화면 → 게임(+일시정지 창) → 게임오버
-  scene: [BootScene, StartScene, GameScene, PauseScene, GameOverScene],
+  // 장면 순서: 준비 → 시작 화면 → 게임(+일시정지 창) → 게임오버 (+음악 불러오기는 뒤에서 계속)
+  scene: [BootScene, StartScene, GameScene, PauseScene, GameOverScene, MusicLoaderScene],
 };
 
 // 게임 중 실수로 화면이 확대되어 잘리지 않게 막아요.
@@ -67,5 +69,8 @@ waitForFont
   .finally(() => {
     const game = new Phaser.Game(config);
     // 개발 중(npm run dev)에는 브라우저 콘솔에서 window.game 으로 게임을 살펴볼 수 있어요.
-    if (import.meta.env.DEV) window.game = game;
+    if (import.meta.env.DEV) {
+      window.game = game;
+      window.__audio = audio;
+    }
   });

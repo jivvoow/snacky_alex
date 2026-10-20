@@ -33,6 +33,7 @@ export const COLORS = {
 export const IMAGES = {
   alex: 'assets/images/alex_idle.png', // 알렉스 기본 표정
   alexEat: 'assets/images/alex_eat.png', // 알렉스 먹는 표정
+  alexFever: 'assets/images/alex_fevertime.png', // 알렉스 피버타임 표정
   cat: 'assets/images/tora_idle.png', // 고양이 토라 걷는 모습 (오른쪽을 바라보는 그림)
   catJump: 'assets/images/tora_jump.png', // 고양이 토라 점프하는 모습
   snack: '', // 일반 간식
@@ -49,6 +50,7 @@ export const AUTO_REMOVE_BACKGROUND = true;
 export const BACKGROUND_TOLERANCE = {
   alex: 8,
   alexEat: 8,
+  alexFever: 8,
   cat: 45,
   catJump: 45,
   default: 20,
@@ -61,6 +63,8 @@ export const SIZES = {
   goldenSnack: 32,
   chocolate: 44,
   cat: 78,
+  goldenPaw: 38,
+  kibble: 18,
 };
 
 // 알렉스
@@ -74,6 +78,7 @@ export const PLAYER = {
 export const SCORE = {
   snack: 10,
   goldenSnack: 30,
+  kibble: 5, // 피버타임 사료 한 알
 };
 export const START_HEALTH = 3;
 
@@ -110,4 +115,42 @@ export const CAT = {
   damage: 1, // 부딪히면 줄어드는 하트 수
   slowFactor: 0.5, // 부딪히면 속도 50%로
   slowMs: 2000, // 둔화 지속 시간 (정확히 2초)
+};
+
+// 🔥 피버타임: 황금 발바닥을 받으면 시작
+export const FEVER = {
+  pawChance: 0.03, // 떨어지는 물건 중 황금 발바닥 확률 (3%, 평균 약 25초에 한 번)
+  durationMs: 8000, // 피버타임 지속 시간 (8초)
+  spawnMultiplier: 3, // 평소보다 몇 배 자주 떨어지는지
+  kibbleRatio: 0.7, // 피버 중 떨어지는 물건 중 사료 비율 (나머지는 일반/황금 간식)
+  catBreakMs: 3000, // 피버가 끝난 뒤 고양이가 다시 나오기까지 최소 시간
+};
+
+// 🎵 소리
+// 음악: public/assets/audio 폴더의 파일. 없으면 아래 '대신 재생' 순서대로 다른 곡을 틀어요.
+// 효과음: 파일 경로를 적으면 그 파일을, 비워두면 코드로 만든 귀여운 소리를 사용해요.
+export const AUDIO = {
+  music: {
+    menu: 'assets/audio/menu.mp3', // 시작 화면
+    game: 'assets/audio/game.mp3', // 기본 플레이
+    fever: 'assets/audio/fever.mp3', // 피버타임
+  },
+  musicFallback: {
+    menu: ['menu', 'game'], // menu.mp3 가 없으면 game.mp3
+    game: ['game', 'menu'],
+    fever: ['fever', 'game'],
+  },
+  sfx: {
+    snack: '', // 간식 획득          예) 'assets/audio/sfx/snack.mp3'
+    golden: '', // 황금 간식 획득
+    kibble: '', // 사료 획득
+    feverStart: '', // 피버타임 시작
+    feverEnd: '', // 피버타임 종료
+    catHit: '', // 토라와 충돌
+    hurt: '', // 초콜릿
+    gameOver: '', // 게임오버
+  },
+  musicVolume: 0.45,
+  sfxVolume: 0.6,
+  fadeMs: 700, // 음악이 바뀔 때 서서히 줄고 커지는 시간
 };

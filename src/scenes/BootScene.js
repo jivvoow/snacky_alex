@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { IMAGES, AUTO_REMOVE_BACKGROUND, BACKGROUND_TOLERANCE, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { IMAGES, AUDIO, AUTO_REMOVE_BACKGROUND, BACKGROUND_TOLERANCE, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { audio } from '../utils/audio.js';
 import { createPlaceholderTextures } from '../utils/placeholderTextures.js';
 import { removeBackground } from '../utils/removeBackground.js';
 import { setupCamera } from '../utils/display.js';
@@ -24,6 +25,11 @@ export default class BootScene extends Phaser.Scene {
     Object.entries(IMAGES).forEach(([key, path]) => {
       if (path) this.load.image(key, path);
     });
+
+    // 효과음 파일 (경로를 적은 것만, 작아서 바로 불러와요)
+    Object.entries(AUDIO.sfx).forEach(([name, path]) => {
+      if (path) this.load.audio(`sfx-${name}`, path);
+    });
   }
 
   create() {
@@ -37,6 +43,9 @@ export default class BootScene extends Phaser.Scene {
     });
 
     createPlaceholderTextures(this);
+
+    audio.init(this.game);
+    this.scene.launch('MusicLoaderScene'); // 음악은 뒤에서 따로 불러와요
     this.scene.start('StartScene');
   }
 }
