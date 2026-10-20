@@ -56,7 +56,10 @@ export default class GameOverScene extends Phaser.Scene {
 
     createBestScoreBadge(this, cx, 690, getBestRecord());
     createSoundToggles(this, 115, 24);
-    audio.playMusic('menu');
+    // 게임오버 효과음이 끝날 즈음 음악을 다시 틀어요
+    this.time.delayedCall(1400, () => {
+      if (!this.leaving) audio.playMusic('menu');
+    });
 
     this.input.keyboard.once('keydown-SPACE', () => this.goTo('GameScene'));
     this.input.keyboard.once('keydown-ENTER', () => this.goTo('GameScene'));

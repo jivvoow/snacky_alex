@@ -130,6 +130,7 @@ export const IMAGES = {
 - 기본은 코드로 만든 귀여운 소리예요.
 - 파일로 바꾸려면 `src/config.js` 의 `AUDIO.sfx` 에 경로를 적어요. 예) `snack: 'assets/audio/sfx/snack.mp3'`
 - 음량은 `AUDIO.musicVolume`, `AUDIO.sfxVolume` 으로 조절해요.
+- 음악 재생 속도는 `AUDIO.musicRate` 로 조절해요. (지금 피버 음악은 1.25배)
 
 ## 📜 음악 출처
 
@@ -139,3 +140,5 @@ export const IMAGES = {
 | --- | --- | --- |
 | `game.mp3` | Kids (Pixabay #617587) | atlasaudio |
 | `fever.mp3` | Energetic Action Sport (Pixabay #500409) | alexgrohl |
+
+게임오버 효과음 `jingles_NES00.ogg` 는 [Kenney](https://kenney.nl/assets/music-jingles) 의 Music Jingles (CC0) 를 사용했어요.

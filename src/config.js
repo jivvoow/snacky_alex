@@ -148,7 +148,13 @@ export const AUDIO = {
     feverEnd: '', // 피버타임 종료
     catHit: '', // 토라와 충돌
     hurt: '', // 초콜릿
-    gameOver: '', // 게임오버
+    gameOver: 'assets/audio/jingles_NES00.ogg', // 게임오버 (Kenney Music Jingles, CC0)
+  },
+  // 음악 재생 속도 (1 = 원래 속도, 1.25 = 1.25배 빠르게). 빨라지면 음도 조금 높아져요.
+  musicRate: {
+    menu: 1,
+    game: 1,
+    fever: 1.25,
   },
   musicVolume: 0.45,
   sfxVolume: 0.6,

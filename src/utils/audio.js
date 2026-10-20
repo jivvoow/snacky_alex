@@ -54,6 +54,31 @@ function tone(ctx, { freq, to = freq, start = 0, dur = 0.12, type = 'triangle', 
   osc.stop(t0 + dur + 0.02);
 }
 
+// 바삭! 씹는 소리 (짧은 잡음을 걸러서 만들어요)
+let noiseBuffer = null;
+function crunch(ctx, start, vol) {
+  if (!noiseBuffer) {
+    noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.1), ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  const t0 = ctx.currentTime + start;
+  const source = ctx.createBufferSource();
+  source.buffer = noiseBuffer;
+  source.playbackRate.value = 0.8 + Math.random() * 0.5;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1800 + Math.random() * 1200;
+  filter.Q.value = 1.2;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(vol * AUDIO.sfxVolume, t0 + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+  source.connect(filter).connect(gain).connect(ctx.destination);
+  source.start(t0);
+  source.stop(t0 + 0.06);
+}
+
 function melody(ctx, freqs, { step, ...options }) {
   freqs.forEach((freq, i) => tone(ctx, { freq, start: i * step, ...options }));
 }
@@ -61,7 +86,10 @@ function melody(ctx, freqs, { step, ...options }) {
 const SYNTH = {
   snack: (ctx) => tone(ctx, { freq: 660, to: 990, dur: 0.1, vol: 0.35 }),
   golden: (ctx) => melody(ctx, [880, 1175, 1568], { step: 0.06, dur: 0.12, type: 'sine', vol: 0.3 }),
-  kibble: (ctx) => tone(ctx, { freq: 1200, to: 1500, dur: 0.05, type: 'sine', vol: 0.15 }),
+  // 와다닥! 사료를 빠르게 세 번 씹는 소리
+  kibble: (ctx) => {
+    for (let i = 0; i < 3; i++) crunch(ctx, i * 0.045, 0.55 - i * 0.1);
+  },
   feverStart: (ctx) => melody(ctx, [523, 659, 784, 1047, 1319], { step: 0.07, dur: 0.16, vol: 0.3 }),
   feverEnd: (ctx) => melody(ctx, [784, 659, 523], { step: 0.09, dur: 0.18, type: 'sine', vol: 0.25 }),
   catHit: (ctx) => tone(ctx, { freq: 380, to: 160, dur: 0.22, type: 'square', vol: 0.12 }),
@@ -126,6 +154,12 @@ class AudioManager {
     this.refresh();
   }
 
+  // 음악을 서서히 꺼요 (게임오버 효과음이 잘 들리게)
+  stopMusic() {
+    this.desired = null;
+    this.refresh();
+  }
+
   refresh() {
     if (!this.game || this.game.sound.locked) return; // 소리가 아직 허용되지 않았어요
     const key = this.musicOn && this.desired ? this.resolveTrack(this.desired) : null;
@@ -142,7 +176,8 @@ class AudioManager {
     if (!key || this.held) return; // 일시정지 중이면 다시 이어할 때 시작해요
 
     const music = this.game.sound.add(key, { loop: true });
-    music.play({ volume: 0 });
+    const name = key.replace('music-', '');
+    music.play({ volume: 0, rate: (AUDIO.musicRate && AUDIO.musicRate[name]) || 1 });
     this.current = { key, sound: music };
     this.fadeTo(music, AUDIO.musicVolume, null, 0); // 새 곡은 0에서부터 서서히 커져요
   }

@@ -412,7 +412,8 @@ export default class GameScene extends Phaser.Scene {
     if (this.feverTimer) this.feverTimer.remove();
     this.feverActive = false;
     this.feverTimer = null;
-    audio.play('gameOver');
+    audio.stopMusic(); // 배경음악을 서서히 끄고
+    audio.play('gameOver'); // 게임오버 효과음
     this.physics.pause();
     this.alex.setTint(0xb0a8b9);
     const isNewBest = saveBestRecord(this.score, this.level);
