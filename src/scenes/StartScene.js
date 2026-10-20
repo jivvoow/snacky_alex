@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, WALL_Y, SIZES, COLORS } from '../config.js';
 import { drawBackground } from '../utils/background.js';
-import { textStyle, fitToHeight, createButton, drawCard, createBestScoreBadge } from '../utils/ui.js';
+import { textStyle, fitToHeight, createButton, drawCard, createBestScoreBadge, createSoundToggles } from '../utils/ui.js';
 import { getBestRecord } from '../utils/storage.js';
+import { audio } from '../utils/audio.js';
 import { setupCamera } from '../utils/display.js';
 import { TEXTURE_SCALE } from '../utils/placeholderTextures.js';
 
@@ -54,6 +55,12 @@ export default class StartScene extends Phaser.Scene {
     // 최고 점수
     createBestScoreBadge(this, cx, 698, getBestRecord());
 
+    // 음악 / 효과음 켜기·끄기 (왼쪽 위)
+    createSoundToggles(this, 115, 24);
+
+    // 시작 화면 음악 (브라우저 정책상 화면을 한 번 누른 뒤부터 들려요)
+    audio.playMusic('menu');
+
     // 키보드로도 시작할 수 있어요
     this.input.keyboard.once('keydown-SPACE', () => this.startGame());
     this.input.keyboard.once('keydown-ENTER', () => this.startGame());
@@ -90,6 +97,7 @@ export default class StartScene extends Phaser.Scene {
   startGame() {
     if (this.starting) return;
     this.starting = true;
+    audio.playMusic('game'); // 게임 시작 버튼을 누르면 기본 음악
     this.scene.start('GameScene');
   }
 }

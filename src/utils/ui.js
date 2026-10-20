@@ -1,6 +1,7 @@
 import { FONT, COLORS } from '../config.js';
 import { RENDER_SCALE } from './display.js';
 import { TEXTURE_SCALE } from './placeholderTextures.js';
+import { audio } from './audio.js';
 
 // 글자 스타일을 간단하게 만들어 주는 도우미
 export function textStyle(size, color = COLORS.text, extra = {}) {
@@ -79,6 +80,68 @@ export function createBestScoreBadge(scene, x, y, best) {
   // best: { score, level }
   const label = best.score > 0 ? `🏆 최고 점수: ${best.score}  ·  Lv.${best.level}` : '🏆 최고 점수: 0';
   return scene.add.text(x, y, label, textStyle(19, COLORS.gold)).setOrigin(0.5);
+}
+
+// 🎵 음악 / 효과음 ON·OFF 버튼 (가운데 x 기준으로 두 개 나란히)
+export function createSoundToggles(scene, x, y, depth = 50) {
+  const width = 96;
+  const height = 30;
+
+  const makeToggle = (offsetX, label, isOn, toggle) => {
+    const bg = scene.add.graphics();
+    const text = scene.add.text(0, 0, '', textStyle(14, '#ffffff')).setOrigin(0.5);
+    const button = scene.add.container(x + offsetX, y, [bg, text]).setDepth(depth);
+    button.setSize(width, height).setInteractive({ useHandCursor: true });
+
+    const draw = () => {
+      const on = isOn();
+      bg.clear();
+      bg.fillStyle(on ? 0x1f2d5a : 0x8d93a3, 1);
+      bg.fillRoundedRect(-width / 2, -height / 2, width, height, height / 2);
+      bg.lineStyle(2, on ? 0xe9c77b : 0xd9dbe2, 1);
+      bg.strokeRoundedRect(-width / 2, -height / 2, width, height, height / 2);
+      text.setText(`${label} ${on ? 'ON' : 'OFF'}`).setColor(on ? COLORS.gold : '#f4f4f6');
+    };
+    button.on('pointerup', () => {
+      toggle();
+      draw();
+    });
+    draw();
+    return button;
+  };
+
+  return [
+    makeToggle(-width / 2 - 5, '♪ 음악', () => audio.musicOn, () => audio.setMusicOn(!audio.musicOn)),
+    makeToggle(width / 2 + 5, '효과음', () => audio.sfxOn, () => audio.setSfxOn(!audio.sfxOn)),
+  ];
+}
+
+// 🎵 게임 화면 상단의 둥근 음악 ON/OFF 버튼
+export function createMusicButton(scene, x, y, depth = 30) {
+  const bg = scene.add.graphics();
+  const note = scene.add.text(0, 1, '♪', textStyle(22, '#ffffff')).setOrigin(0.5);
+  const button = scene.add.container(x, y, [bg, note]).setDepth(depth);
+  button.setSize(36, 36).setInteractive({ useHandCursor: true });
+
+  const draw = () => {
+    const on = audio.musicOn;
+    bg.clear();
+    bg.fillStyle(on ? 0x1f2d5a : 0x8d93a3, 0.9);
+    bg.fillCircle(0, 0, 18);
+    bg.lineStyle(2, on ? 0xe9c77b : 0xd9dbe2, 1);
+    bg.strokeCircle(0, 0, 18);
+    if (!on) {
+      bg.lineStyle(3, 0xff6f91, 1);
+      bg.lineBetween(-10, -10, 10, 10); // 꺼짐 빗금
+    }
+    note.setColor(on ? COLORS.gold : '#f4f4f6');
+  };
+  button.on('pointerup', () => {
+    audio.setMusicOn(!audio.musicOn);
+    draw();
+  });
+  draw();
+  return button;
 }
 
 // 점수 등이 둥실 떠오르며 사라지는 글자

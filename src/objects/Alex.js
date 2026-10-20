@@ -11,6 +11,9 @@ export default class Alex extends Phaser.Physics.Arcade.Image {
 
     // 먹는 표정 그림이 없으면 기본 그림을 그대로 사용
     this.eatTexture = scene.textures.exists('alexEat') ? 'alexEat' : 'alex';
+    // 피버 그림이 없으면 먹는 표정으로 대신해요
+    this.feverTexture = scene.textures.exists('alexFever') ? 'alexFever' : this.eatTexture;
+    this.feverMode = false;
 
     this.setDepth(10);
     this.setFace(false);
@@ -52,8 +55,15 @@ export default class Alex extends Phaser.Physics.Arcade.Image {
   }
 
   setFace(eating) {
-    this.setTexture(eating ? this.eatTexture : 'alex');
+    // 피버타임에는 계속 신난 표정 (사료를 자주 먹어도 표정이 깜빡이지 않게)
+    if (this.feverMode) this.setTexture(this.feverTexture);
+    else this.setTexture(eating ? this.eatTexture : 'alex');
     fitToHeight(this, SIZES.alex);
+  }
+
+  setFever(on) {
+    this.feverMode = on;
+    this.setFace(false);
   }
 
   // 간식 먹기: 먹는 표정 + 콩 뛰기

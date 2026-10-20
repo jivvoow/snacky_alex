@@ -262,6 +262,37 @@ function drawChocolate(g) {
   g.fillTriangle(16.6, 49, 27.4, 49, 22, 54);
 }
 
+// 🌟 황금 발바닥 (피버타임 아이템)
+function drawGoldenPaw(g) {
+  g.fillStyle(0xfff1b8, 0.45);
+  g.fillCircle(24, 24, 23); // 은은한 빛
+  const paw = (fill, pad) => {
+    g.fillStyle(fill, 1);
+    g.fillEllipse(24, 30, 20 + pad, 16 + pad);
+    g.fillCircle(11, 18, 5 + pad / 2);
+    g.fillCircle(19, 11, 5 + pad / 2);
+    g.fillCircle(29, 11, 5 + pad / 2);
+    g.fillCircle(37, 18, 5 + pad / 2);
+  };
+  paw(0xd99a00, 4); // 테두리
+  paw(0xffc93c, 0);
+  g.fillStyle(0xffffff, 0.7);
+  g.fillEllipse(20, 27, 7, 4);
+  g.fillCircle(18, 9.5, 1.6);
+}
+
+// 🟤 강아지 사료 한 알
+function drawKibble(g) {
+  g.fillStyle(0x8a4f22, 1);
+  g.fillCircle(10, 10, 9);
+  g.fillStyle(0xb8763c, 1);
+  g.fillCircle(10, 10, 7.5);
+  g.fillStyle(0x8a4f22, 1);
+  g.fillCircle(10, 10, 2.5); // 가운데 구멍
+  g.fillStyle(0xe2a868, 0.8);
+  g.fillEllipse(7, 6.5, 5, 2.5);
+}
+
 // 🐾 발바닥
 function drawPaw(g) {
   g.fillStyle(0xffffff, 1);
@@ -311,6 +342,8 @@ export function createPlaceholderTextures(scene) {
   makeTexture(scene, 'goldenSnack', 52, 32, (g) => drawBone(g, 0xffd54a, 0xe6a700));
   makeTexture(scene, 'chocolate', 44, 58, drawChocolate);
   makeTexture(scene, 'paw', 32, 30, drawPaw);
+  makeTexture(scene, 'goldenPaw', 48, 48, drawGoldenPaw);
+  makeTexture(scene, 'kibble', 20, 20, drawKibble);
   makeTexture(scene, 'arrowKeys', 68, 36, drawArrowKeys);
   makeTexture(scene, 'heart', 28, 26, (g) => drawHeart(g, 0xff6f91));
   makeTexture(scene, 'heartEmpty', 28, 26, (g) => drawHeart(g, 0xe3dbe8));

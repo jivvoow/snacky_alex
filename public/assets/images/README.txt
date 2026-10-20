@@ -2,6 +2,7 @@
 
   alex_idle.png   알렉스 기본 표정
   alex_eat.png    알렉스 간식 먹는 표정
+  alex_fevertime.png  알렉스 피버타임 표정
   tora_idle.png   고양이 토라 걷는 모습 (오른쪽을 바라보는 그림)
   tora_jump.png   고양이 토라 점프하는 모습
 

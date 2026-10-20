@@ -1,9 +1,11 @@
 ﻿import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, PLAYER, SIZES, SCORE, START_HEALTH, LEVEL_UP_MS, FALL, CAT, COLORS } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, PLAYER, SIZES, SCORE, START_HEALTH, LEVEL_UP_MS, FALL, CAT, FEVER, COLORS } from '../config.js';
 import Alex from '../objects/Alex.js';
 import Cat from '../objects/Cat.js';
+import FeverUI from '../objects/FeverUI.js';
+import { audio } from '../utils/audio.js';
 import { drawBackground } from '../utils/background.js';
-import { textStyle, fitToHeight, floatingText } from '../utils/ui.js';
+import { textStyle, fitToHeight, floatingText, createMusicButton } from '../utils/ui.js';
 import { getBestRecord, saveBestRecord } from '../utils/storage.js';
 import { setupCamera } from '../utils/display.js';
 import { TEXTURE_SCALE } from '../utils/placeholderTextures.js';
@@ -27,6 +29,8 @@ export default class GameScene extends Phaser.Scene {
     this.catTimer = 0;
     this.nextCatDelay = CAT.firstDelay;
     this.isGameOver = false;
+    this.feverActive = false;
+    this.feverTimer = null;
 
     // 조작 상태
     this.touchLeft = false;
@@ -57,6 +61,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.createHud();
     this.createControls();
+    this.feverUi = new FeverUI(this);
   }
 
   // ---------------- 화면 상단 정보 (점수/레벨/체력) ----------------
@@ -104,6 +109,7 @@ export default class GameScene extends Phaser.Scene {
 
     // 일시정지 버튼 (오른쪽 위) + Esc 키
     this.createPauseButton(GAME_WIDTH - 32, 84);
+    createMusicButton(this, GAME_WIDTH - 76, 84); // 음악 켜기/끄기
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.events.on('resume', this.onResume, this);
     this.events.once('shutdown', () => this.events.off('resume', this.onResume, this));
@@ -193,19 +199,25 @@ export default class GameScene extends Phaser.Scene {
     const newLevel = 1 + Math.floor(this.elapsed / LEVEL_UP_MS);
     if (newLevel > this.level) this.levelUp(newLevel);
 
-    // 간식/초콜릿 떨어뜨리기
+    // 간식/초콜릿 떨어뜨리기 (피버타임에는 3배 자주)
+    const spawnInterval = this.feverActive ? difficulty.spawnInterval / FEVER.spawnMultiplier : difficulty.spawnInterval;
     this.itemTimer += ms;
-    if (this.itemTimer >= difficulty.spawnInterval) {
+    if (this.itemTimer >= spawnInterval) {
       this.itemTimer = 0;
       this.spawnItem(difficulty);
     }
 
-    // 고양이 등장
-    this.catTimer += ms;
-    if (this.catTimer >= this.nextCatDelay) {
-      this.catTimer = 0;
-      this.spawnCat(difficulty);
-      this.nextCatDelay = difficulty.catInterval * Phaser.Math.FloatBetween(0.8, 1.2);
+    if (this.feverActive) {
+      // 피버타임: 고양이는 나오지 않고, 남은 시간 게이지만 줄어들어요
+      this.feverUi.update(this.feverTimer.getRemaining() / FEVER.durationMs);
+    } else {
+      // 고양이 등장
+      this.catTimer += ms;
+      if (this.catTimer >= this.nextCatDelay) {
+        this.catTimer = 0;
+        this.spawnCat(difficulty);
+        this.nextCatDelay = difficulty.catInterval * Phaser.Math.FloatBetween(0.8, 1.2);
+      }
     }
 
     // 바닥 아래로 떨어진 물건 정리
@@ -227,20 +239,34 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // ---------------- 떨어지는 물건 ----------------
-  spawnItem(difficulty) {
+  // 무엇을 떨어뜨릴지 정해요
+  chooseItemType(difficulty) {
     const roll = Math.random();
-    let type = 'snack';
-    if (roll < difficulty.chocolateChance) type = 'chocolate';
-    else if (roll < difficulty.chocolateChance + FALL.goldenChance) type = 'goldenSnack';
+    if (this.feverActive) {
+      // 피버타임: 사료가 대부분, 나머지는 일반/황금 간식 (초콜릿·황금 발바닥 없음)
+      if (roll < FEVER.kibbleRatio) return 'kibble';
+      return Math.random() < FALL.goldenChance ? 'goldenSnack' : 'snack';
+    }
+    if (roll < FEVER.pawChance) return 'goldenPaw';
+    if (roll < FEVER.pawChance + difficulty.chocolateChance) return 'chocolate';
+    if (roll < FEVER.pawChance + difficulty.chocolateChance + FALL.goldenChance) return 'goldenSnack';
+    return 'snack';
+  }
 
+  spawnItem(difficulty) {
+    const type = this.chooseItemType(difficulty);
     const x = Phaser.Math.Between(30, GAME_WIDTH - 30);
     const item = this.items.create(x, -30, type);
     item.itemType = type;
     fitToHeight(item, SIZES[type]);
     item.body.setSize(item.width * 0.8, item.height * 0.8);
-    item.setVelocityY(difficulty.fallSpeed);
     item.setDepth(5);
-    item.setAngularVelocity(Phaser.Math.Between(-90, 90));
+    if (type === 'goldenPaw') {
+      item.setVelocityY(difficulty.fallSpeed * 0.85); // 황금 발바닥은 조금 천천히
+    } else {
+      item.setVelocityY(difficulty.fallSpeed);
+      item.setAngularVelocity(Phaser.Math.Between(-90, 90));
+    }
   }
 
   handleItem(alex, item) {
@@ -249,17 +275,82 @@ export default class GameScene extends Phaser.Scene {
     item.destroy();
 
     if (itemType === 'chocolate') {
+      audio.play('hurt');
       floatingText(this, x, this.alex.y - 60, '초콜릿은 안 돼! 🍫', '#ff5c7a', 22);
       this.loseHealth(1);
       return;
     }
 
-    const points = SCORE[itemType];
+    if (itemType === 'goldenPaw') {
+      this.alex.eat();
+      this.sparkles.explode(24, this.alex.x, this.alex.y - 35);
+      if (this.feverActive) this.addScore(SCORE.snack, '#f0a500'); // 피버 중엔 중복 발동 없이 점수만
+      else this.startFever();
+      return;
+    }
+
+    this.alex.eat();
+    if (itemType === 'kibble') {
+      audio.play('kibble');
+      this.sparkles.explode(3, this.alex.x, this.alex.y - 35);
+      this.addScore(SCORE.kibble, '#c27a3a', 18);
+    } else if (itemType === 'goldenSnack') {
+      audio.play('golden');
+      this.sparkles.explode(18, this.alex.x, this.alex.y - 35);
+      this.addScore(SCORE.goldenSnack, '#f0a500');
+    } else {
+      audio.play('snack');
+      this.sparkles.explode(8, this.alex.x, this.alex.y - 35);
+      this.addScore(SCORE.snack, COLORS.pink);
+    }
+  }
+
+  addScore(points, color, size = 24) {
     this.score += points;
     this.updateHud();
-    this.alex.eat();
-    this.sparkles.explode(itemType === 'goldenSnack' ? 18 : 8, this.alex.x, this.alex.y - 35);
-    floatingText(this, this.alex.x, this.alex.y - 60, `+${points}`, itemType === 'goldenSnack' ? '#f0a500' : COLORS.pink);
+    floatingText(this, this.alex.x + Phaser.Math.Between(-12, 12), this.alex.y - 60, `+${points}`, color, size);
+  }
+
+  // 부딪히지 않게 하고 살며시 사라지게 (피버 시작 때 초콜릿 정리용)
+  fadeAwayItem(item) {
+    item.itemType = null;
+    item.body.enable = false;
+    this.tweens.add({ targets: item, alpha: 0, scale: item.scale * 0.5, duration: 250, onComplete: () => item.destroy() });
+  }
+
+  // ---------------- 피버타임 ----------------
+  startFever() {
+    if (this.feverActive || this.isGameOver) return; // 중복 발동 방지
+    this.feverActive = true;
+    audio.play('feverStart');
+    audio.playMusic('fever');
+    this.alex.setFever(true);
+    this.feverUi.show();
+
+    // 이미 나온 고양이와 초콜릿, 황금 발바닥은 살며시 사라져요
+    this.cats.getChildren().slice().forEach((cat) => cat.fadeAway());
+    this.items.getChildren().slice().forEach((item) => {
+      if (item.itemType === 'chocolate' || item.itemType === 'goldenPaw') this.fadeAwayItem(item);
+    });
+
+    this.itemTimer = 0;
+    this.feverTimer = this.time.delayedCall(FEVER.durationMs, () => this.endFever());
+  }
+
+  endFever() {
+    if (!this.feverActive) return;
+    this.feverActive = false;
+    this.feverTimer = null;
+    if (this.isGameOver) return;
+
+    audio.play('feverEnd');
+    audio.playMusic('game');
+    this.alex.setFever(false);
+    this.feverUi.hide();
+
+    // 피버가 끝나자마자 고양이가 나오지 않도록 잠깐 쉬는 시간
+    this.catTimer = 0;
+    this.nextCatDelay = Math.max(FEVER.catBreakMs, this.getDifficulty().catInterval * 0.5);
   }
 
   // 하트 감소 (초콜릿, 고양이 공통)
@@ -285,6 +376,7 @@ export default class GameScene extends Phaser.Scene {
   handleCat(alex, cat) {
     if (cat.hasHit || this.isGameOver) return;
     cat.hasHit = true; // 이 고양이와는 다시 부딪히지 않아요
+    audio.play('catHit');
 
     if (this.alex.slowDown()) {
       floatingText(this, this.alex.x, this.alex.y - 75, '어지러워~', '#8a7aff', 20);
@@ -317,6 +409,10 @@ export default class GameScene extends Phaser.Scene {
   // ---------------- 게임 종료 ----------------
   gameOver() {
     this.isGameOver = true;
+    if (this.feverTimer) this.feverTimer.remove();
+    this.feverActive = false;
+    this.feverTimer = null;
+    audio.play('gameOver');
     this.physics.pause();
     this.alex.setTint(0xb0a8b9);
     const isNewBest = saveBestRecord(this.score, this.level);

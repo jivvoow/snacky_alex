@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, COLORS } from '../config.js';
 import { drawBackground } from '../utils/background.js';
-import { textStyle, fitToHeight, createButton, drawCard, createBestScoreBadge } from '../utils/ui.js';
+import { textStyle, fitToHeight, createButton, drawCard, createBestScoreBadge, createSoundToggles } from '../utils/ui.js';
 import { getBestRecord } from '../utils/storage.js';
+import { audio } from '../utils/audio.js';
 import { setupCamera } from '../utils/display.js';
 
 // 🏁 게임오버 화면
@@ -54,6 +55,8 @@ export default class GameOverScene extends Phaser.Scene {
     home.on('pointerup', () => this.goTo('StartScene'));
 
     createBestScoreBadge(this, cx, 690, getBestRecord());
+    createSoundToggles(this, 115, 24);
+    audio.playMusic('menu');
 
     this.input.keyboard.once('keydown-SPACE', () => this.goTo('GameScene'));
     this.input.keyboard.once('keydown-ENTER', () => this.goTo('GameScene'));
@@ -62,6 +65,7 @@ export default class GameOverScene extends Phaser.Scene {
   goTo(sceneKey) {
     if (this.leaving) return;
     this.leaving = true;
+    if (sceneKey === 'GameScene') audio.playMusic('game');
     this.scene.start(sceneKey);
   }
 }
