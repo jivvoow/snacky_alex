@@ -60,10 +60,10 @@ export const BACKGROUND_TOLERANCE = {
 export const SIZES = {
   alex: 120,
   snack: 30,
-  goldenSnack: 32,
+  goldenSnack: 42, // 빛 후광 포함 크기
   chocolate: 44,
   cat: 78,
-  goldenPaw: 38,
+  rainbowPaw: 50, // 무지개 후광 포함 크기
   kibble: 18,
 };
 
@@ -93,7 +93,7 @@ export const FALL = {
   baseInterval: 720, // 레벨 1에서 물건이 나오는 간격 (밀리초)
   intervalPerLevel: 45, // 레벨당 줄어드는 간격
   minInterval: 360, // 가장 짧은 간격
-  goldenChance: 0.1, // 황금 간식 확률 (10%)
+  goldenChance: 0.2, // 황금 간식 확률 (20%)
   baseChocolateChance: 0.15, // 레벨 1 초콜릿 확률 (15%)
   chocolateChancePerLevel: 0.02, // 레벨당 늘어나는 초콜릿 확률
   maxChocolateChance: 0.33, // 최대 초콜릿 확률
@@ -117,9 +117,9 @@ export const CAT = {
   slowMs: 2000, // 둔화 지속 시간 (정확히 2초)
 };
 
-// 🔥 피버타임: 황금 발바닥을 받으면 시작
+// 🔥 피버타임: 무지개 발바닥을 받으면 시작
 export const FEVER = {
-  pawChance: 0.03, // 떨어지는 물건 중 황금 발바닥 확률 (3%, 평균 약 25초에 한 번)
+  pawChance: 0.03, // 떨어지는 물건 중 무지개 발바닥 확률 (3%, 평균 약 25초에 한 번)
   durationMs: 8000, // 피버타임 지속 시간 (8초)
   spawnMultiplier: 3, // 평소보다 몇 배 자주 떨어지는지
   kibbleRatio: 0.7, // 피버 중 떨어지는 물건 중 사료 비율 (나머지는 일반/황금 간식)
