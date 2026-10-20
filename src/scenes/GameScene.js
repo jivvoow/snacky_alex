@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser';
+import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, PLAYER, SIZES, SCORE, START_HEALTH, LEVEL_UP_MS, FALL, CAT, FEVER, COLORS } from '../config.js';
 import Alex from '../objects/Alex.js';
 import Cat from '../objects/Cat.js';
@@ -243,11 +243,11 @@ export default class GameScene extends Phaser.Scene {
   chooseItemType(difficulty) {
     const roll = Math.random();
     if (this.feverActive) {
-      // 피버타임: 사료가 대부분, 나머지는 일반/황금 간식 (초콜릿·황금 발바닥 없음)
+      // 피버타임: 사료가 대부분, 나머지는 일반/황금 간식 (초콜릿·무지개 발바닥 없음)
       if (roll < FEVER.kibbleRatio) return 'kibble';
       return Math.random() < FALL.goldenChance ? 'goldenSnack' : 'snack';
     }
-    if (roll < FEVER.pawChance) return 'goldenPaw';
+    if (roll < FEVER.pawChance) return 'rainbowPaw';
     if (roll < FEVER.pawChance + difficulty.chocolateChance) return 'chocolate';
     if (roll < FEVER.pawChance + difficulty.chocolateChance + FALL.goldenChance) return 'goldenSnack';
     return 'snack';
@@ -261,13 +261,14 @@ export default class GameScene extends Phaser.Scene {
     fitToHeight(item, SIZES[type]);
     item.body.setSize(item.width * 0.8, item.height * 0.8);
     item.setDepth(5);
-    if (type === 'goldenPaw') {
-      item.setVelocityY(difficulty.fallSpeed * 0.85); // 황금 발바닥은 조금 천천히
+    if (type === 'rainbowPaw') {
+      item.setVelocityY(difficulty.fallSpeed * 0.85); // 무지개 발바닥은 조금 천천히
     } else {
       item.setVelocityY(difficulty.fallSpeed);
       item.setAngularVelocity(Phaser.Math.Between(-90, 90));
     }
     if (type === 'goldenSnack') this.makeShiny(item);
+    if (type === 'rainbowPaw') this.makeRainbow(item);
   }
 
   // 황금 간식: 반짝반짝 커졌다 작아지고, 뒤로 금빛 반짝이가 흘러요 (일반 간식과 구별)
@@ -275,15 +276,29 @@ export default class GameScene extends Phaser.Scene {
     item.body.setSize(item.width * 0.65, item.height * 0.65); // 빛 후광 부분은 빼고 충돌
     item.setAngularVelocity(Phaser.Math.Between(-40, 40)); // 천천히 돌아서 잘 보이게
     this.tweens.add({ targets: item, scale: item.scale * 1.15, duration: 280, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.addSparkleTrail(item, [0xffd23f, 0xffffff]);
+  }
+
+  // 무지개 발바닥: 살랑살랑 흔들리며 반짝이고, 알록달록 반짝이 꼬리가 생겨요
+  makeRainbow(item) {
+    item.body.setSize(item.width * 0.7, item.height * 0.7); // 후광 부분은 빼고 충돌
+    item.setAngle(-14);
+    this.tweens.add({ targets: item, angle: 14, duration: 450, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: item, scale: item.scale * 1.12, duration: 320, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.addSparkleTrail(item, [0xff6b6b, 0xffa94d, 0xffd43b, 0x51cf66, 0x4dabf7, 0xb197fc], 60, 0.7);
+  }
+
+  // 떨어지는 물건 뒤로 흐르는 반짝이 (물건이 사라지면 같이 사라져요)
+  addSparkleTrail(item, tint, frequency = 90, size = 0.55) {
     const trail = this.add
       .particles(0, 0, 'sparkle', {
         follow: item,
-        frequency: 90,
+        frequency,
         lifespan: 450,
         speed: { min: 10, max: 40 },
-        scale: { start: 0.55 / TEXTURE_SCALE, end: 0 },
+        scale: { start: size / TEXTURE_SCALE, end: 0 },
         alpha: { start: 1, end: 0 },
-        tint: [0xffd23f, 0xffffff],
+        tint,
       })
       .setDepth(4);
     item.once('destroy', () => trail.destroy());
@@ -301,7 +316,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    if (itemType === 'goldenPaw') {
+    if (itemType === 'rainbowPaw') {
       this.alex.eat();
       this.sparkles.explode(24, this.alex.x, this.alex.y - 35);
       if (this.feverActive) this.addScore(SCORE.snack, '#f0a500'); // 피버 중엔 중복 발동 없이 점수만
@@ -347,10 +362,10 @@ export default class GameScene extends Phaser.Scene {
     this.alex.setFever(true);
     this.feverUi.show();
 
-    // 이미 나온 고양이와 초콜릿, 황금 발바닥은 살며시 사라져요
+    // 이미 나온 고양이와 초콜릿, 무지개 발바닥은 살며시 사라져요
     this.cats.getChildren().slice().forEach((cat) => cat.fadeAway());
     this.items.getChildren().slice().forEach((item) => {
-      if (item.itemType === 'chocolate' || item.itemType === 'goldenPaw') this.fadeAwayItem(item);
+      if (item.itemType === 'chocolate' || item.itemType === 'rainbowPaw') this.fadeAwayItem(item);
     });
 
     this.itemTimer = 0;

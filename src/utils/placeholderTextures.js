@@ -291,23 +291,41 @@ function drawChocolate(g) {
   g.fillTriangle(16.6, 49, 27.4, 49, 22, 54);
 }
 
-// 🌟 황금 발바닥 (피버타임 아이템)
-function drawGoldenPaw(g) {
-  g.fillStyle(0xfff1b8, 0.45);
-  g.fillCircle(24, 24, 23); // 은은한 빛
-  const paw = (fill, pad) => {
-    g.fillStyle(fill, 1);
-    g.fillEllipse(24, 30, 20 + pad, 16 + pad);
-    g.fillCircle(11, 18, 5 + pad / 2);
-    g.fillCircle(19, 11, 5 + pad / 2);
-    g.fillCircle(29, 11, 5 + pad / 2);
-    g.fillCircle(37, 18, 5 + pad / 2);
-  };
-  paw(0xd99a00, 4); // 테두리
-  paw(0xffc93c, 0);
-  g.fillStyle(0xffffff, 0.7);
-  g.fillEllipse(20, 27, 7, 4);
-  g.fillCircle(18, 9.5, 1.6);
+// 🌈 무지개 발바닥 (피버타임 아이템): 발가락마다 다른 색 + 무지개빛 후광
+function drawRainbowPaw(g) {
+  // 무지개빛 후광 (바깥 보라 → 안쪽 노랑)
+  [
+    [27, 0xd0b0ff],
+    [24, 0x9fd3ff],
+    [21, 0xb8f0a8],
+    [18, 0xfff1a0],
+  ].forEach(([r, color]) => {
+    g.fillStyle(color, 0.35);
+    g.fillCircle(28, 28, r);
+  });
+
+  const pad = { x: 28, y: 35, w: 22, h: 17 };
+  const toes = [
+    [14, 23, 0xff6b6b], // 빨강
+    [22, 15, 0xffa94d], // 주황
+    [34, 15, 0x51cf66], // 초록
+    [42, 23, 0x4dabf7], // 파랑
+  ];
+  // 하얀 테두리
+  g.fillStyle(0xffffff, 1);
+  g.fillEllipse(pad.x, pad.y, pad.w + 6, pad.h + 6);
+  toes.forEach(([x, y]) => g.fillCircle(x, y, 8));
+  // 색칠
+  g.fillStyle(0xb197fc, 1); // 보라 발바닥
+  g.fillEllipse(pad.x, pad.y, pad.w, pad.h);
+  toes.forEach(([x, y, color]) => {
+    g.fillStyle(color, 1);
+    g.fillCircle(x, y, 5.5);
+  });
+  // 반짝 광택
+  g.fillStyle(0xffffff, 0.75);
+  g.fillEllipse(pad.x - 4, pad.y - 3, 8, 4);
+  toes.forEach(([x, y]) => g.fillCircle(x - 1.8, y - 1.8, 1.6));
 }
 
 // 🟤 강아지 사료 한 알
@@ -371,7 +389,7 @@ export function createPlaceholderTextures(scene) {
   makeTexture(scene, 'goldenSnack', 64, 48, drawGoldenBone);
   makeTexture(scene, 'chocolate', 44, 58, drawChocolate);
   makeTexture(scene, 'paw', 32, 30, drawPaw);
-  makeTexture(scene, 'goldenPaw', 48, 48, drawGoldenPaw);
+  makeTexture(scene, 'rainbowPaw', 56, 56, drawRainbowPaw);
   makeTexture(scene, 'kibble', 20, 20, drawKibble);
   makeTexture(scene, 'arrowKeys', 68, 36, drawArrowKeys);
   makeTexture(scene, 'heart', 28, 26, (g) => drawHeart(g, 0xff6f91));
